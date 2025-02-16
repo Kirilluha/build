@@ -177,7 +177,7 @@ class P2PGUI(QMainWindow):
         window_width = int(screen_width * 0.32)
         window_height = int(screen_height * 0.42)
         ip_port_font_size = int(screen_height * 0.01)  
-
+        drop_label_height = int(screen_height * 0.1042)
 
         self.setWindowTitle("P2P File Sharing")
         # self.setGeometry(100, 100, 800, 600)
@@ -196,7 +196,7 @@ class P2PGUI(QMainWindow):
         layout.setSpacing(20)
 
         
-
+        mb_title = screen_height * 0.0208
         title = QLabel("P2P File Sharing")
         title.setAlignment(Qt.AlignCenter)
         title.setStyleSheet(f"""
@@ -206,11 +206,11 @@ class P2PGUI(QMainWindow):
                 font-weight: bold;
                 text-transform: uppercase;
                 letter-spacing: 2px;
-                margin-bottom: 30px;
+                margin-bottom: {mb_title}px;
             }}
         """)
         layout.addWidget(title)
-
+        pd_dir = screen_height * 0.0104
         self.select_dir_button = QPushButton("Выбрать директорию")
         self.select_dir_button.setStyleSheet(f"""
             QPushButton {{
@@ -218,7 +218,7 @@ class P2PGUI(QMainWindow):
                     stop:0 #4A90E2, stop:1 #6A1B9A);
                 color: white;
                 border-radius: 15px;
-                padding: 15px;
+                padding: {pd_dir}px;
                 font-size: {push_button_font_size}px;
                 font-weight: bold;
             }}
@@ -232,18 +232,19 @@ class P2PGUI(QMainWindow):
         """)
         self.select_dir_button.clicked.connect(self.select_directory)
         layout.addWidget(self.select_dir_button)
-
+        pd_dir_l = screen_height * 0.0079
         self.dir_label = QLabel(f"Сохранять файлы в: {self.save_directory}")
         self.dir_label.setStyleSheet(f"""
             QLabel {{
                 color: #BDBDBD;
                 font-size: {dir_label_font_size}px;
-                padding: 10px;
+                padding: {pd_dir_l}px;
                 background-color: rgba(255, 255, 255, 0.1);
                 border-radius: 10px;
             }}
         """)
         layout.addWidget(self.dir_label)
+        m_label = screen_height * 0.0138
 
         self.drop_label = QLabel("Перетащите файлы сюда")
         self.drop_label.setAlignment(Qt.AlignCenter)
@@ -254,23 +255,24 @@ class P2PGUI(QMainWindow):
                 color: #BDBDBD;
                 font-size: {drop_label_font_size}px;
                 background-color: rgba(255, 255, 255, 0.05);
-                margin: 20px 0;
+                margin: {m_label}px 0;
             }}
             QLabel:hover {{
                 background-color: rgba(255, 255, 255, 0.1);
                 border-color: #6A1B9A;
             }}
         """)
-        self.drop_label.setFixedHeight(150)
+        self.drop_label.setFixedHeight(drop_label_height)
         layout.addWidget(self.drop_label)
+        pd_drop = screen_height * 0.0085
 
         input_style = f"""
             QLineEdit {{
                 background-color: rgba(255, 255, 255, 0.1);
-                border: 2px solid #4A90E2;
+                border: {dnd_obvod}px solid #4A90E2;
                 border-radius: 10px;
                 color: #E0E0E0;
-                padding: 12px;
+                padding: {pd_drop}px;
                 font-size: {ip_port_font_size}px;
             }}
             QLineEdit:hover {{
