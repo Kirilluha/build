@@ -11,6 +11,7 @@ from PyQt5.QtCore import Qt
 import configparser
 import appdirs
 from pathlib import Path
+import atexit
 
 class GradientWidget(QWidget):
     def paintEvent(self, event):
@@ -20,13 +21,36 @@ class GradientWidget(QWidget):
         gradient.setColorAt(1.0, QColor(50, 50, 50))
         painter.fillRect(event.rect(), gradient)
 
+class SingleInstanceChecker:
+    def __init__(self, port=54321):
+        self.port = port
+        self.socket = None
+        try:
+            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket.bind(("127.0.0.1", self.port))
+        except socket.error:
+            self.is_already_running = True
+        else:
+            self.is_already_running = False
+
+    def cleanup(self):
+        if self.socket:
+            self.socket.close()
+
+def get_unique_filename(save_path):
+    base, ext = os.path.splitext(save_path)
+    counter = 1
+    while os.path.exists(save_path):
+        save_path = f"{base}({counter}){ext}"
+        counter += 1
+    return save_path
+
 class P2PNode:
     def __init__(self, host, port, save_directory=None):
         self.host = host
         self.port = port
         self.server_socket = None
         self.save_directory = save_directory or os.getcwd()
-
 
     def start_server(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -60,7 +84,11 @@ class P2PNode:
                     break
                 file_name, file_size = header.split('|')
                 file_size = int(file_size)
-                save_path = os.path.join(self.save_directory, file_name)
+                
+                # Генерация уникального имени файла
+                initial_save_path = os.path.join(self.save_directory, file_name)
+                save_path = get_unique_filename(initial_save_path)
+                
                 with open(save_path, 'wb') as f:
                     remaining = file_size
                     while remaining > 0:
@@ -87,14 +115,12 @@ class P2PNode:
             with open(file_name, 'rb') as f:
                 while chunk := f.read(65536 * 4):
                     client_socket.sendall(chunk)
-
         finally:
             client_socket.close()
 
     def set_save_directory(self, path):
         if os.path.isdir(path):
             self.save_directory = path
-        
 
 class P2PGUI(QMainWindow):
     def __init__(self, node):
@@ -102,7 +128,6 @@ class P2PGUI(QMainWindow):
         self.node = node
         self.config = configparser.ConfigParser()
         
-        # Настройка путей для конфига
         config_dir = appdirs.user_data_dir('P2PFileSharing', 'MemeBlox')
         os.makedirs(config_dir, exist_ok=True)
         self.config_file = os.path.join(config_dir, 'config.ini')
@@ -133,7 +158,6 @@ class P2PGUI(QMainWindow):
             self.config.write(configfile)
 
     def init_ui(self):
-        # Настройка путей для иконок
         if getattr(sys, 'frozen', False):
             base_path = Path(sys._MEIPASS)
         else:
@@ -145,7 +169,6 @@ class P2PGUI(QMainWindow):
         self.setGeometry(100, 100, 800, 600)
         self.setMinimumSize(600, 400)
 
-        # Центрирование окна на экране
         screen_geometry = QApplication.desktop().screenGeometry()
         x = (screen_geometry.width() - self.width()) // 2
         y = (screen_geometry.height() - self.height()) // 2
@@ -288,7 +311,7 @@ class P2PGUI(QMainWindow):
             port = int(port)
         except ValueError:
             QMessageBox.warning(self, "Ошибка", "Порт должен быть числом.")
-            return
+            return 
 
         for file in files:
             threading.Thread(
@@ -327,6 +350,14 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     
+    single_instance_checker = SingleInstanceChecker()
+
+    if single_instance_checker.is_already_running:
+        QMessageBox.critical(None, "Ошибка", "Приложение уже запущено!")
+        sys.exit(1)
+
+    atexit.register(single_instance_checker.cleanup)
+
     config_dir = appdirs.user_data_dir('P2PFileSharing', 'YourCompany')
     os.makedirs(config_dir, exist_ok=True)
     config_file = os.path.join(config_dir, 'config.ini')
@@ -340,6 +371,6 @@ if __name__ == "__main__":
 
     node = P2PNode(HOST, PORT, save_directory=default_save_directory)
     node.start_server()
-    gui = P2PGUI(node)
+    gui = P2PGUI(node) 
     gui.show()
     sys.exit(app.exec_())
