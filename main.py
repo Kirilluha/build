@@ -164,14 +164,29 @@ class P2PGUI(QMainWindow):
             base_path = Path('.')
         
         tray_icon_path = str(base_path / 'tray_icon.ico')
+        screen_geometry = QApplication.desktop().screenGeometry()
+
+        screen_width = screen_geometry.width()
+        screen_height = screen_geometry.height()
+
+        label_font_size = int(screen_height * 0.02)  
+        push_button_font_size = int(screen_height * 0.012)  
+        dir_label_font_size = int(screen_height * 0.01)  
+        drop_label_font_size = int(screen_height * 0.0125)  
+        dnd_obvod = int(screen_height * 0.002)
+        window_width = int(screen_width * 0.32)
+        window_height = int(screen_height * 0.42)
+        ip_port_font_size = int(screen_height * 0.01)  
+
 
         self.setWindowTitle("P2P File Sharing")
-        self.setGeometry(100, 100, 800, 600)
+        # self.setGeometry(100, 100, 800, 600)
+        self.setGeometry(100, 100, window_width, window_height)
+
         self.setMinimumSize(600, 400)
 
-        screen_geometry = QApplication.desktop().screenGeometry()
-        x = (screen_geometry.width() - self.width()) // 2
-        y = (screen_geometry.height() - self.height()) // 2
+        x = (screen_width - self.width()) // 2
+        y = (screen_height - self.height()) // 2
         self.move(x, y)
 
         central_widget = GradientWidget()
@@ -180,86 +195,89 @@ class P2PGUI(QMainWindow):
         layout.setContentsMargins(30, 30, 30, 30)
         layout.setSpacing(20)
 
+        
+
         title = QLabel("P2P File Sharing")
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("""
-            QLabel {
+        title.setStyleSheet(f"""
+            QLabel {{
                 color: #4A90E2;
-                font-size: 28px;
+                font-size: {label_font_size}px;
                 font-weight: bold;
                 text-transform: uppercase;
                 letter-spacing: 2px;
                 margin-bottom: 30px;
-            }
+            }}
         """)
         layout.addWidget(title)
 
         self.select_dir_button = QPushButton("Выбрать директорию")
-        self.select_dir_button.setStyleSheet("""
-            QPushButton {
+        self.select_dir_button.setStyleSheet(f"""
+            QPushButton {{
                 background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #4A90E2, stop:1 #6A1B9A);
                 color: white;
                 border-radius: 15px;
                 padding: 15px;
-                font-size: 16px;
+                font-size: {push_button_font_size}px;
                 font-weight: bold;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
                     stop:0 #6A1B9A, stop:1 #4A90E2);
-            }
-            QPushButton:pressed {
+            }}
+            QPushButton:pressed {{
                 background-color: #303F9F;
-            }
+            }}
         """)
         self.select_dir_button.clicked.connect(self.select_directory)
         layout.addWidget(self.select_dir_button)
 
         self.dir_label = QLabel(f"Сохранять файлы в: {self.save_directory}")
-        self.dir_label.setStyleSheet("""
-            QLabel {
+        self.dir_label.setStyleSheet(f"""
+            QLabel {{
                 color: #BDBDBD;
-                font-size: 14px;
+                font-size: {dir_label_font_size}px;
                 padding: 10px;
                 background-color: rgba(255, 255, 255, 0.1);
                 border-radius: 10px;
-            }
+            }}
         """)
         layout.addWidget(self.dir_label)
 
         self.drop_label = QLabel("Перетащите файлы сюда")
         self.drop_label.setAlignment(Qt.AlignCenter)
-        self.drop_label.setStyleSheet("""
-            QLabel {
-                border: 2px dashed #4A90E2;
+        self.drop_label.setStyleSheet(f"""
+            QLabel {{
+                border: {dnd_obvod}px dashed #4A90E2;
                 border-radius: 20px;
                 color: #BDBDBD;
-                font-size: 18px;
+                font-size: {drop_label_font_size}px;
                 background-color: rgba(255, 255, 255, 0.05);
                 margin: 20px 0;
-            }
-            QLabel:hover {
+            }}
+            QLabel:hover {{
                 background-color: rgba(255, 255, 255, 0.1);
                 border-color: #6A1B9A;
-            }
+            }}
         """)
         self.drop_label.setFixedHeight(150)
         layout.addWidget(self.drop_label)
 
-        input_style = """
-            QLineEdit {
+        input_style = f"""
+            QLineEdit {{
                 background-color: rgba(255, 255, 255, 0.1);
                 border: 2px solid #4A90E2;
                 border-radius: 10px;
                 color: #E0E0E0;
                 padding: 12px;
-                font-size: 14px;
-            }
-            QLineEdit:focus {
+                font-size: {ip_port_font_size}px;
+            }}
+            QLineEdit:hover {{
                 border-color: #6A1B9A;
                 background-color: rgba(255, 255, 255, 0.15);
-            }
+            }}
+           
         """
 
         self.ip_input = QLineEdit()
@@ -341,7 +359,7 @@ class P2PGUI(QMainWindow):
     def closeEvent(self, event):
         self.save_config()
         self.hide()
-        self.tray_icon.showMessage("P2P File Sharing", "Приложение свернуто в трей.", QSystemTrayIcon.Information)
+        self.tray_icon.showMessage("P2P File Sharing", "Приложение свернуто в трей.", QSystemTrayIcon.Information, 3000)
         event.ignore()
 
 if __name__ == "__main__":
